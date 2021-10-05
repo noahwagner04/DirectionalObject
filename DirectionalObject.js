@@ -4,7 +4,7 @@ var DirectionalObject = (function() {
 		return (x - s1) * (e2 - s2) / (e1 - s1) + s2;
 	}
 
-	// change this to use cos equation from wiki how, and use it to get the angle between the direction vector and the vector between the camera and the sprite (camera.pos.x - this.pos.x, camera.pos.y - this.pos.y)
+	// uses wikihow method for finding angle between two vectors
 	function angleBetween(x1, y1, x2, y2) {
 		var length1 = Math.sqrt(x1 ** 2 + y1 ** 2);
 		var length2 = Math.sqrt(x2 ** 2 + y2 ** 2);
@@ -42,11 +42,24 @@ var DirectionalObject = (function() {
 	}
 
 	DirectionalObject.prototype.orient = function(x, y) {
+		// get the vector betwen our position and the provided (x, y) vector
 		var between = {
 			x: x - this.position.x,
 			y: y - this.position.y
 		};
-		var angle = angleBetween(between.x, between.y, this.direction.x, this.direction.y);
+
+		// the sign of the determinant of the between vector and our direction to distinguish the left side from the right
+		var sign = Math.sign(between.x * this.direction.y - this.direction.x * between.y);
+		// offsets the transition of one directional face to the next
+		var offset = (360 / (this.faces.length * 2));
+		// the angle between this direction vector and the between vector, offseted and multiplied by sign
+		var angle = angleBetween(between.x, between.y, this.direction.x, this.direction.y) * sign - offset;
+
+		if (angle < -180) {
+			angle = 360 + angle
+		}
+
+		// remap the angle to a range of 0 - face amount
 		this.face = this.faces[Math.floor(remap(angle, -180, 180, 0, this.faces.length))];
 		return this;
 	};
